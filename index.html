@@ -1,111 +1,169 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CineMatch - CS 5614 Project</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>CineMatch - CS 5614 Project</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
 
-  <link rel="stylesheet" href="style.css" />
-</head>
+        <link rel="stylesheet" href="style.css" />
+    </head>
 
-<body>
-<div class="container">
+    <body>
+        <div class="container">
+            <div class="title-block">
+                <h1>CineMatch</h1>
+                <p class="subtitle">
+                    A Hybrid LLM and Relational Approach for Personalized Movie
+                    Recommendation
+                </p>
+                <p class="course">
+                    CS 5614 - Database Management Systems &middot; Virginia Tech
+                    &middot; Spring 2026
+                </p>
+            </div>
 
-  <div class="title-block">
-    <h1>CineMatch</h1>
-    <p class="subtitle">A Hybrid LLM and Relational Approach for Personalized Movie Recommendation</p>
-    <p class="course">CS 5614 - Database Management Systems &middot; Virginia Tech &middot; Spring 2026</p>
-  </div>
+            <img src="static/dummy.png" alt="CineMatch system overview" />
 
-  <img src="static/dummy.png" alt="CineMatch system overview" />
+            <section>
+                <h2>About</h2>
+                <p>
+                    CineMatch is a hybrid movie recommendation system where each
+                    component handles the part of the problem it is suited for.
+                    XGBoost handles scoring and ranking. An LLM enriches the
+                    movie database through a PostgreSQL trigger pipeline,
+                    converts natural language queries into SQL, and generates
+                    short explanations for recommendations. PostgreSQL manages
+                    all structured storage, and Apache AGE handles graph
+                    traversal for related-title discovery.
+                </p>
+                <p>
+                    The system collects structured preference data at signup so
+                    recommendations are personalized from the first session,
+                    addressing the cold-start problem. Mood is treated as a real
+                    feature in the user profile, updated through feedback.
+                </p>
 
-  <section>
-    <h2>About</h2>
-    <p>
-      CineMatch is a hybrid movie recommendation system where each component handles the part of the problem it is suited for.
-      XGBoost handles scoring and ranking. An LLM enriches the movie database through a PostgreSQL trigger pipeline,
-      converts natural language queries into SQL, and generates short explanations for recommendations.
-      PostgreSQL manages all structured storage, and Apache AGE handles graph traversal for related-title discovery.
-    </p>
-    <p>
-      The system collects structured preference data at signup so recommendations are personalized from the first session,
-      addressing the cold-start problem. Mood is treated as a real feature in the user profile, updated through feedback.
-    </p>
+                <div class="links">
+                    <a href="proposal.pdf" target="_blank">Proposal (PDF)</a>
+                    <a
+                        href="https://github.com/yazeed1s/cenimatch"
+                        target="_blank"
+                        >Repository (coming soon)</a
+                    >
+                </div>
+            </section>
 
-    <div class="links">
-      <a href="proposal.pdf" target="_blank">Proposal (PDF)</a>
-      <a href="https://github.com/your-username/your-repo" target="_blank">Repository (coming soon)</a>
-    </div>
-  </section>
+            <hr />
 
-  <hr />
+            <section>
+                <h2>Architecture</h2>
+                <img
+                    class="arch-diagram"
+                    src="static/arch.png"
+                    alt="CineMatch system architecture diagram"
+                />
+            </section>
 
-  <section>
-    <h2>Features</h2>
-    <ul>
-      <li>Interactive onboarding for cold-start personalization</li>
-      <li>LLM-triggered database enrichment on movie insertion</li>
-      <li>XGBoost ranking with structured feature vectors</li>
-      <li>Conversational movie search via text-to-SQL</li>
-      <li>Graph-based related movie discovery (Apache AGE)</li>
-      <li>Mood-based quick pick with six mood categories</li>
-      <li>City-level live activity map rendered with ECharts</li>
-      <li>Analytics dashboards backed by PostgreSQL views</li>
-    </ul>
-  </section>
+            <hr />
 
-  <hr />
+            <section>
+                <h2>Features</h2>
+                <ul>
+                    <li>
+                        Interactive onboarding for cold-start personalization
+                    </li>
+                    <li>
+                        LLM-triggered database enrichment on movie insertion
+                    </li>
+                    <li>XGBoost ranking with structured feature vectors</li>
+                    <li>Conversational movie search via text-to-SQL</li>
+                    <li>Graph-based related movie discovery (Apache AGE)</li>
+                    <li>Mood-based quick pick with six mood categories</li>
+                    <li>City-level live activity map rendered with ECharts</li>
+                    <li>Analytics dashboards backed by PostgreSQL views</li>
+                </ul>
+            </section>
 
-  <section>
-    <h2>Stack</h2>
-    <div class="tech-tags">
-      <span>Go</span>
-      <span>Python / FastAPI</span>
-      <span>PostgreSQL 16</span>
-      <span>Apache AGE</span>
-      <span>XGBoost</span>
-      <span>Gemini Flash</span>
-      <span>React / TypeScript</span>
-      <span>ECharts</span>
-      <span>Docker</span>
-    </div>
-  </section>
+            <hr />
 
-  <hr />
+            <section>
+                <h2>Stack</h2>
+                <div class="tech-tags">
+                    <span>Go</span>
+                    <span>Python / FastAPI</span>
+                    <span>PostgreSQL 16</span>
+                    <span>Apache AGE</span>
+                    <span>XGBoost</span>
+                    <span>Gemini Flash</span>
+                    <span>React / TypeScript</span>
+                    <span>ECharts</span>
+                    <span>Docker</span>
+                </div>
+            </section>
 
-  <section>
-    <h2>Team</h2>
-    <div class="team-list">
-      <div class="person">
-        <span class="name">Abdulrahman Alamoudi</span>
-        <span class="role">Go API &amp; Activity Simulation</span>
-      </div>
-      <div class="person">
-        <span class="name">Gary Young</span>
-        <span class="role">Data Ingestion &amp; Corpus Preparation</span>
-      </div>
-      <div class="person">
-        <span class="name">Jack Lyons</span>
-        <span class="role">LLM Integration, XGBoost &amp; RAG</span>
-      </div>
-      <div class="person">
-        <span class="name">Yazeed Alharthi</span>
-        <span class="role">PostgreSQL Schema &amp; Query Optimization</span>
-      </div>
-      <div class="person">
-        <span class="name">Yordanos Tessema</span>
-        <span class="role">Apache AGE &amp; Graph Traversal</span>
-      </div>
-    </div>
-  </section>
+            <hr />
 
-  <footer>
-    CineMatch &middot; 2026
-  </footer>
+            <section>
+                <h2>Team</h2>
+                <div class="team-grid">
+                    <div class="member-card">
+                        <img src="static/abdul.jpg" alt="Abdulrahman Alamoudi" />
+                        <span class="name">Abdulrahman Alamoudi</span>
+                    </div>
+                    <div class="member-card">
+                        <img src="static/gary.jpg" alt="Gary Young" />
+                        <span class="name">Gary Young</span>
+                    </div>
+                    <div class="member-card">
+                        <img src="static/jack.jpeg" alt="Jack Lyons" />
+                        <span class="name">Jack Lyons</span>
+                    </div>
+                    <div class="member-card">
+                        <img src="static/yaz.png" alt="Yazeed Alharthi" />
+                        <span class="name">Yazeed Alharthi</span>
+                    </div>
+                    <div class="member-card">
+                        <img src="static/yordanos.jpg" alt="Yordanos Tessema" />
+                        <span class="name">Yordanos Tessema</span>
+                    </div>
+                </div>
+            </section>
 
-</div>
-</body>
+            <hr />
+
+            <section>
+                <h2>Responsibilities</h2>
+                <div class="team-list">
+                    <div class="person">
+                        <span class="name">Abdulrahman Alamoudi</span>
+                        <span class="role">Go API &amp; Activity Simulation</span>
+                    </div>
+                    <div class="person">
+                        <span class="name">Gary Young</span>
+                        <span class="role">Data Ingestion &amp; Corpus Preparation</span>
+                    </div>
+                    <div class="person">
+                        <span class="name">Jack Lyons</span>
+                        <span class="role">LLM Integration, XGBoost &amp; RAG</span>
+                    </div>
+                    <div class="person">
+                        <span class="name">Yazeed Alharthi</span>
+                        <span class="role">PostgreSQL Schema &amp; Query Optimization</span>
+                    </div>
+                    <div class="person">
+                        <span class="name">Yordanos Tessema</span>
+                        <span class="role">Apache AGE &amp; Graph Traversal</span>
+                    </div>
+                </div>
+            </section>
+
+            <footer>CineMatch &middot; 2026</footer>
+        </div>
+    </body>
 </html>
