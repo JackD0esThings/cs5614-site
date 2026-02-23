@@ -1,0 +1,177 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{array}
+
+\begin{document}
+
+\title{CineMatch: A Hybrid LLM and Relational Approach\\for Personalized Movie Recommendation}
+
+\author{
+\IEEEauthorblockN{Abdulrahman Alamoudi (Leader)}
+\IEEEauthorblockA{\textit{Computer Science and Applications} \\
+Virginia Tech \\ aramoudi@vt.edu \\ 906661376}
+\and
+\IEEEauthorblockN{Gary Young}
+\IEEEauthorblockA{\textit{Computer Science and Applications} \\
+Virginia Tech \\ garyyoung@vt.edu \\ 906743984}
+\and
+\IEEEauthorblockN{Jack Lyons}
+\IEEEauthorblockA{\textit{Computer Science and Applications} \\
+Virginia Tech \\ jackl25@vt.edu \\ 906364425}
+\and
+\IEEEauthorblockN{Yazeed Alharthi}
+\IEEEauthorblockA{\textit{Computer Science and Applications} \\
+Virginia Tech \\ yazeena@vt.edu}
+\and
+\IEEEauthorblockN{Yordanos Tessema}
+\IEEEauthorblockA{\textit{Computer Science and Applications} \\
+Virginia Tech \\ yordanost@vt.edu}
+}
+
+\maketitle
+
+\begin{abstract}
+CineMatch is a hybrid movie recommendation system where each component handles the part of the problem it is suited for. XGBoost takes care of all candidate scoring and ranking. A Large Language Model handles three specific tasks: enriching the movie database through a PostgreSQL trigger pipeline, converting natural language queries into SQL, and writing short explanations for why each movie was recommended. PostgreSQL manages all structured storage, filtering, and aggregation. Apache AGE handles graph traversal for related-title discovery inside the same PostgreSQL cluster. A Python service owns the ML pipeline. User preference data is collected at signup through a short onboarding conversation so the system can make personalized recommendations from the very first session.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Recommendation Systems, Large Language Models, XGBoost, Text-to-SQL, PostgreSQL, Apache AGE, Graph Databases, RAG, Trigger-Based Enrichment, Personalization
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+\subsection{Motivation}
+
+Most recommendation systems work the same way: watch what users do, accumulate history, and slowly build up a taste model. This is fine when there is enough data, but it runs into two problems that do not get enough attention.
+
+The first is cold-start. When someone creates an account, there is nothing to go on, so the system recommends whatever is popular. Some platforms add a preference quiz at signup, but those answers rarely reach the actual ranking model. The user gets generic results until watch history builds up.
+
+The second is mood. Even users with years of history do not always want the same kind of movie they usually watch. A model trained on behavioral history can tell you what a person usually likes but not what they feel like watching right now. Mood shifts between sessions and a system that cannot account for it keeps getting things partially wrong.
+
+CineMatch collects structured preference data at signup so recommendations are personalized from day one. Mood is treated as a real feature in the user profile and gets updated as users leave feedback.
+
+\subsection{Problem Statement}
+
+There are three main problems this project addresses. The first is the gap between how users express what they want and what a database and ML model can work with. A search like ``something like Interstellar but less confusing'' has real signal in it: sci-fi genre, preference for linear narrative, similar runtime. The system needs to extract that and turn it into a SQL query and scored features reliably. A rough similarity match is not enough.
+
+The second is enriching the movie database without doing it by hand. The corpus has around 100,000 movies. Going through each one to assign mood labels and thematic keywords is not realistic. The system needs a pipeline that handles this automatically when a new movie is inserted.
+
+The third is explainability. A ranked list with no context is hard to trust and hard to give feedback on. Recommendations should come with a reason.
+
+\subsection{Significance}
+
+The usual framing in recommendation research is that the database is just storage and the model does the real work. CineMatch questions that. The database here is not passive. It gets enriched automatically by the LLM through a trigger pipeline and handles filtering, aggregation, and graph traversal directly. The LLM is not the recommendation engine. It handles the parts involving natural language and nothing else. XGBoost does the ranking using structured features the database and onboarding flow have already prepared. This makes the system easier to inspect since any recommendation traces back to specific feature values, a specific SQL query, and a specific logged LLM output.
+
+\section{Related Work}
+
+A few platforms are worth examining to understand where CineMatch fits.
+
+\textbf{Letterboxd}~\cite{letterboxd} is probably the best social film discovery tool available. Users log what they watch, write reviews, and follow each other. The community lists are genuinely useful. The problem is there is no personalized recommendation engine behind it. What you find depends entirely on who you follow. There is no ranking algorithm, no cold-start handling, and no preference model.
+
+\textbf{Rotten Tomatoes}~\cite{rottentomatoes} aggregates critic and audience scores and is useful as a quality signal, but it does not try to model individual taste at all. Every user sees the same scores for every film.
+
+\textbf{IMDb}~\cite{imdb} has the most complete structured movie data that exists, with cast, crew, and ratings at a depth nothing else matches. Its ``More Like This'' feature uses shallow genre overlap with no underlying preference model. It is a reference database, not a recommendation system.
+
+\textbf{TMDB}~\cite{tmdb} has a well-documented REST API that updates daily and covers a wide range of international cinema. It is the main external data source for CineMatch.
+
+None of these platforms solve cold-start through onboarding that connects to a ranking model. None run LLM-based semantic enrichment as a live part of the data pipeline. None use graph traversal to find thematic connections between films. CineMatch puts all three together.
+
+\section{Proposed Approach}
+
+The design comes down to three ideas: collect real preference data at signup so the system works from session one; automatically enrich the movie database using an LLM trigger pipeline; and use XGBoost for all ranking so the LLM never touches the scoring path.
+
+\subsection{Interactive Onboarding}
+
+At signup, a short questionnaire builds a structured preference profile before the user has watched anything. It collects genre preferences with free-text notes, preferred runtime, decade range, language openness, and content tolerance stored as numeric values. The most useful part is the mood anchor: the user names three films they liked and three they did not. The LLM reads all six and extracts attributes like pacing, emotional tone, and narrative complexity, stored as a JSONB column. People are much better at naming films they have opinions about than describing those opinions in the abstract. The extracted attributes feed into XGBoost from the very first request.
+
+\subsection{LLM-Triggered Database Enrichment}
+
+Every time a new row gets inserted into the \texttt{movies} table, a PostgreSQL trigger fires and queues an enrichment job. The job sends the movie's title, genre list, and plot summary to Gemini Flash, which returns semantic tags covering mood, pacing, narrative complexity, and thematic keywords, each with a confidence score between 0 and 1. Those tags get written back into \texttt{movie\_tags} with \texttt{source = 'llm'}. There is no batch job to schedule. Enrichment happens as a side effect of insertion.
+
+The same pipeline builds the graph in Apache AGE. After tagging, the LLM scores thematic similarity between the new movie and existing movies that share genre or keyword overlap. An edge is created only when the similarity score clears a set threshold, which keeps the graph from just connecting everything in the same genre. Within minutes of being inserted, a movie is tagged and graph-connected.
+
+\subsection{Ranking, Feedback, and Architecture}
+
+When a user opens the home feed, the Go API loads their profile from PostgreSQL and calls the Python scoring service. That service filters out movies that fail hard constraints then runs XGBoost over the rest. The feature vector includes genre weights, mood profile attributes, the movie's assigned tags, average rating, runtime, release year, and cast-and-crew overlap with the user's stated preferences. The top 20 come back to the Go API. For the top 5, Gemini Flash generates a one-sentence explanation produced after ranking with no effect on the order. Feedback closes the loop: star ratings and not-interested signals update weights via exponential moving average, rejected titles are excluded permanently, and the model retrains weekly on accumulated data.
+
+The system runs as four Docker containers via \texttt{docker-compose}: a \textbf{Go API server} for routing, JWT auth, and coordination; a \textbf{Python analytics service} (FastAPI) exposing \texttt{/score}, \texttt{/train}, \texttt{/enrich}, and \texttt{/rag}; \textbf{PostgreSQL 16 with Apache AGE} as the single source of truth; and a \textbf{React and TypeScript frontend} that only talks to the Go API.
+
+\section{System Features}
+
+\textbf{Personalized Home Feed.} Twenty candidates ranked by XGBoost with one-sentence LLM explanations for the top five, generated after ranking and cached per session.
+
+\textbf{Conversational Movie Search.} Users type queries in plain English. The Go API sends the query with the relevant schema to Gemini Flash, which returns a parameterized SQL \texttt{SELECT}. The query is checked against a whitelist before running: read-only, \texttt{LIMIT} required, no unsafe keywords. The generated SQL can be shown to the user as a transparency option. Filters include genre, MPAA rating, score range, year, runtime, language, director, actor, and mood tags.
+
+\textbf{Mood-Based Quick Pick.} A mood selector offers six options: Feel-Good, Tense, Thought-Provoking, Funny, Romantic, and Epic. Picking one filters \texttt{movie\_tags} and re-ranks the results against the user's XGBoost score. The mood tags were written by the trigger pipeline when each movie was inserted.
+
+\textbf{Related Movies via Graph.} Each movie detail page has a ``You might also like'' section from Apache AGE traversal. Edges represent shared director, shared lead actor, shared genre, and LLM-scored thematic similarity. Going two or three hops out finds movies with multiple indirect connections, a stronger signal than a flat genre match. AGE runs inside PostgreSQL so no separate infrastructure is needed.
+
+\textbf{City-Level Activity Map.} A live map shows the most-watched movie per city and state. A background Go service generates simulated activity written to \texttt{activity\_events} with a \texttt{city\_state} field. A materialized view refreshes every 60 seconds over a rolling 10-minute window. The frontend renders this with ECharts using city and state GeoJSON.
+
+\textbf{Analytics Dashboards.} ECharts charts backed by precomputed PostgreSQL views cover genre trends over time, rating distribution by decade, top directors by recommendation frequency, a user activity heatmap, cold-start versus returning-user accuracy, mood tag popularity by rating, and language diversity. Free-text analytics questions get turned into SQL by the LLM and rendered as a chart.
+
+\textbf{Explicit Feedback Loop.} Star ratings and not-interested signals update genre and mood weights through exponential moving average. Rejected titles are permanently removed from the candidate set between retraining cycles.
+
+\section{Datasets}
+
+The corpus is built from four sources merged on TMDB ID. The \textbf{TMDB Movies Dataset}~\cite{tmdb_dataset} is the main source with about 100,000 titles from a collection of over one million daily-updated entries. The \textbf{IMDb Non-Commercial Datasets}~\cite{imdb_official} add crew data and audience ratings across 1.6 million titles. The \textbf{Netflix Reviews Dataset}~\cite{netflix_reviews} seeds the activity simulation and provides sentiment signals for feature engineering. The \textbf{Kaggle Movies Dataset}~\cite{kaggle_movies} verifies the ingestion pipeline is working correctly. Poster images and daily updates come from the TMDB~\cite{tmdb} and OMDB~\cite{omdb} APIs.
+
+\newpage
+\appendix
+
+\subsection*{Database Schema Overview}
+
+The schema splits into two groups. On the movie side, \texttt{movies} holds core metadata including title, year, runtime, language, ratings, and plot summary. Genres link through \texttt{movie\_genres} and semantic tags from the LLM pipeline live in \texttt{movie\_tags} with a float confidence score and a source field. Cast and crew go into \texttt{movie\_crew} with a role column. On the user side, \texttt{user\_preferences} stores genre weights and tolerance thresholds as JSONB, and \texttt{user\_mood\_profile} holds the onboarding-extracted mood attributes. Watch history, explicit feedback, and every recommendation made by the system each have their own table, forming the training data for XGBoost and the evaluation record for tracking model improvement over time.
+
+\vspace{6pt}
+
+\subsection*{Task Assignment}
+
+\begin{table}[h]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\caption{Task Assignment by Member}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{>{\raggedright\arraybackslash}p{5.6cm} >{\raggedright\arraybackslash}p{2.5cm}}
+\toprule
+\textbf{Task} & \textbf{Member} \\
+\midrule
+Go API server, routing, and JWT auth & Abdulrahman Alamoudi \\
+Activity simulation and materialized views for city map & Abdulrahman Alamoudi \\
+PostgreSQL schema, migrations, and query optimization & Gary Young \\
+Data ingestion pipeline and corpus preparation & Gary Young \\
+LLM adapter: trigger enrichment, Text-to-SQL, explanations & Jack Lyons \\
+XGBoost feature engineering, training, and scoring service & Jack Lyons \\
+RAG system, feedback loop, and model retraining & Jack Lyons \\
+React frontend, ECharts dashboards, and city activity map & Yazeed Alharthi \\
+User onboarding flow across frontend and backend & Yazeed Alharthi \\
+Apache AGE graph setup and related-movies traversal & Yordanos Tessema \\
+Integration, testing, and documentation & All members \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{4pt}
+
+\begin{thebibliography}{00}
+\bibitem{letterboxd} Letterboxd. \url{https://letterboxd.com/}
+\bibitem{rottentomatoes} Rotten Tomatoes. \url{https://www.rottentomatoes.com/}
+\bibitem{imdb} IMDb. \url{https://www.imdb.com/}
+\bibitem{tmdb} The Movie Database API. \url{https://developer.themoviedb.org/docs/getting-started}
+\bibitem{kaggle_movies} R. Banik, ``The Movies Dataset,'' Kaggle. \url{https://www.kaggle.com/datasets/rounakbanik/the-movies-dataset}
+\bibitem{tmdb_dataset} A. Saniczka, ``TMDB Movies Dataset 2023,'' Kaggle. \url{https://www.kaggle.com/datasets/asaniczka/tmdb-movies-dataset-2023-930k-movies}
+\bibitem{imdb_official} IMDb Non-Commercial Datasets. \url{https://datasets.imdbws.com/}
+\bibitem{netflix_reviews} A. Kumarak, ``Netflix Reviews,'' Kaggle. \url{https://www.kaggle.com/datasets/ashishkumarak/netflix-reviews-playstore-daily-updated}
+\bibitem{omdb} OMDB API. \url{https://www.omdbapi.com/}
+\end{thebibliography}
+
+\end{document}
