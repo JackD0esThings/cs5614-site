@@ -158,6 +158,14 @@
       line-height: 1.4;
     }
 
+    .leader-badge {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
     .team-list {
       display: flex;
       flex-direction: column;
