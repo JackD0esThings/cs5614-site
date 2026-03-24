@@ -54,7 +54,7 @@
                     <a
                         href="https://github.com/yazeed1s/cenimatch"
                         target="_blank"
-                        >Repository (coming soon)</a
+                        >Repository</a
                     >
                 </div>
             </section>
@@ -88,6 +88,64 @@
                     <li>City-level live activity map rendered with ECharts</li>
                     <li>Analytics dashboards backed by PostgreSQL views</li>
                 </ul>
+            </section>
+
+            <hr />
+
+            <section>
+                <h2>Checkpoint 1</h2>
+                <p>
+                    We finalized the database schema, built the backend
+                    foundation in Go, and created tooling for data ingestion,
+                    migrations, and local development. Key design decisions
+                    around LLM guardrails and location-based recommendations
+                    were documented.
+                </p>
+
+                <h3>Completed</h3>
+                <ul class="progress-list">
+                    <li class="done">
+                        PostgreSQL schema &dash; 14 tables, 3 enums, enrichment
+                        trigger on movie insert
+                    </li>
+                    <li class="done">
+                        Dataset downloader CLI &dash; 7 sources (IMDb + Kaggle),
+                        concurrent downloads, multiple auth methods
+                    </li>
+                    <li class="done">
+                        Go API server &dash; chi router, CORS, JWT auth
+                        middleware, health endpoint
+                    </li>
+                    <li class="done">
+                        Database layer &dash; pgxpool with custom type
+                        registration, transaction support
+                    </li>
+                    <li class="done">
+                        Migration CLI &dash; reset, drop, create, seed, and
+                        status commands
+                    </li>
+                    <li class="done">
+                        Config system &dash; env loading with dev defaults and
+                        strict prod mode
+                    </li>
+                    <li class="done">
+                        Docker Compose &dash; Postgres 16 with Makefile and
+                        run.sh tooling
+                    </li>
+                </ul>
+
+                <h3>In Progress</h3>
+                <ul class="progress-list">
+                    <li class="wip">Python scoring service (FastAPI)</li>
+                    <li class="wip">User questionnaire &amp; preference insertion</li>
+                    <li class="wip">React dashboard &amp; frontend pages</li>
+                </ul>
+
+                <img
+                    class="arch-diagram"
+                    src="static/tm.png"
+                    alt="Project timeline and task assignment diagram"
+                />
             </section>
 
             <hr />
@@ -142,24 +200,24 @@
                 <h2>Responsibilities</h2>
                 <div class="team-list">
                     <div class="person">
-                        <span class="name">Abdulrahman Alamoudi</span>
-                        <span class="role">Go API &amp; Activity Simulation</span>
-                    </div>
-                    <div class="person">
-                        <span class="name">Gary Young</span>
-                        <span class="role">Data Ingestion &amp; Corpus Preparation</span>
+                        <span class="name">Yazeed Alharthi</span>
+                        <span class="role">DB Design, Data Prep &amp; LLM-DB Integration, Backend</span>
                     </div>
                     <div class="person">
                         <span class="name">Jack Lyons <span class="leader-badge">Team Leader</span></span>
-                        <span class="role">LLM Integration, XGBoost &amp; RAG</span>
+                        <span class="role">Backend Dev, API &amp; User Questionnaire</span>
                     </div>
                     <div class="person">
-                        <span class="name">Yazeed Alharthi</span>
-                        <span class="role">PostgreSQL Schema &amp; Query Optimization</span>
+                        <span class="name">Gary Young</span>
+                        <span class="role">Recommendation Logic &amp; User Simulation</span>
                     </div>
                     <div class="person">
                         <span class="name">Yordanos Tessema</span>
-                        <span class="role">Apache AGE &amp; Graph Traversal</span>
+                        <span class="role">React/TS Frontend, ECharts &amp; UX</span>
+                    </div>
+                    <div class="person">
+                        <span class="name">Abdulrahman Alamoudi</span>
+                        <span class="role">Apache AGE Graph &amp; Spatial Queries (PostGIS)</span>
                     </div>
                 </div>
             </section>

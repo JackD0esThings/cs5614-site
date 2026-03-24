@@ -65,6 +65,13 @@
       margin-bottom: 12px;
     }
 
+    section h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 16px 0 8px;
+    }
+
     section p {
       margin-bottom: 12px;
     }
@@ -122,6 +129,35 @@
 
     ul li {
       margin-bottom: 6px;
+    }
+
+    .progress-list {
+      list-style: none;
+      padding-left: 0;
+      margin-bottom: 20px;
+    }
+
+    .progress-list li {
+      padding-left: 24px;
+      position: relative;
+    }
+
+    .progress-list li::before {
+      position: absolute;
+      left: 0;
+      font-size: 14px;
+    }
+
+    .progress-list li.done::before {
+      content: '✓';
+      color: #2f855a;
+      font-weight: 600;
+    }
+
+    .progress-list li.wip::before {
+      content: '◦';
+      color: #b7791f;
+      font-weight: 600;
     }
 
     .team-grid {
