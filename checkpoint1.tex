@@ -125,8 +125,43 @@ The system runs as four Docker containers via \texttt{docker-compose}: a \textbf
 
 The corpus is built from four sources merged on TMDB ID. The \textbf{TMDB Movies Dataset}~\cite{tmdb_dataset} is the main source with about 100,000 titles from a collection of over one million daily-updated entries. The \textbf{IMDb Non-Commercial Datasets}~\cite{imdb_official} add crew data and audience ratings across 1.6 million titles. The \textbf{Netflix Reviews Dataset}~\cite{netflix_reviews} seeds the activity simulation and provides sentiment signals for feature engineering. The \textbf{Kaggle Movies Dataset}~\cite{kaggle_movies} verifies the ingestion pipeline is working correctly. Poster images and daily updates come from the TMDB~\cite{tmdb} and OMDB~\cite{omdb} APIs.
 
-\newpage
-\appendix
+\section{Checkpoint I}
+
+In this project checkpoint, we revised and clarified the features of our project based on feedback, including the schema, tech stack, and LLM scope. We have also redefined and reallocated group member roles in accordance with our expected project timeline to ensure an even distribution of work across our remaining time. With these tasks completed, we have finalized the design of our application and the schema of our database, and have begun building our backend.
+
+\textbf{LLM Guardrails.} One of our concerns when enabling an LLM to dynamically construct SQL queries is the possibility to perform destructive actions on our database. As indicated by our conversational movie search feature, we intend for the LLM to parse plain text into a parameterized SELECT statement, and as such we wish to whitelist certain behavior that could be possible from user input. To ensure the integrity of our database, we are imposing limitations on the types of SQL statements the LLM is able to perform by checking the queries it constructs for specific keywords. We intend to implement a filter that checks all LLM generated queries and blocks potentially harmful ones from being executed on our database. This filter will be implemented in our backend to integrate with the LLM such that we can provide sample queries during testing. All statements capable of altering the rows in our movie dataset will be forbidden by our filter, this includes INSERT, UPDATE, DELETE, and TRUNCATE. Additionally, we want to prevent any statements that could alter our database schema, including CREATE, ALTER, and DROP. The primary goal is to only allow for queries formatted as a SELECT statement and return an error for all others.
+
+\textbf{Users and Spatial Relations.} The design of our database schema includes data for user locations as another means to provide accurate movie recommendations. As part of the initial user questionnaire intended to collect data for recommendations, the user can choose to provide location data. If provided, users will be able to toggle recommendations based on movie data from users in their area, improving accuracy by limiting preferences to what is popular in the area. This feature is intended to be simple to implement, using our same recommendation model on a subset of the full user dataset based on location data collected from the user during our initial questionnaire. We also intend for this feature to interact with our city-level activity map such that the user can visualize where their recommendations are derived.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1.0\linewidth]{Database_Management_Systems_Project_Timeline.png}
+    \caption{Project Timeline}
+    \label{fig:timeline}
+\end{figure}
+
+\textbf{Project Roles and Timeline.} Since our project proposal, we have redefined each member’s role in the project and have constructed a timeline of when each member should expect to complete each task they’re assigned (See Fig. \ref{fig:timeline}). This timeline is expected to be a guide, so the exact dates and members assigned to a specific task are subject to change if the amount of time and resources required is different from what we’re projecting. We expect all members to contribute to system testing and integration to ensure the functionality of all components. All members will also contribute to the final report and presentation so we can accurately discuss all parts of the system.
+
+\textbf{Current Tasks and Milestones}
+We have reached several goals at this stage of our project, and our project timeline indicates the tasks that are currently in progress. We completed the design for our database schema for both our users and our movie datasets, and we have a system to pull the relevant datasets from Kaggle. We have set up the required tools for our backend, including running Postgres in Docker. Our current tasks are developing our python scoring service and questionnaire data insertion in the backend and developing the dashboard for our React frontend. Our reports on individual team member contributions reflect the changes in task allocation and our timeline.
+
+\subsection*{Yazeed Alharthi}
+Yazeed is tasked with database design, data preparation, LLM DB integration, and query optimization. These tasks focus on determining our database schema and managing how the LLM interacts with it. For this checkpoint, he has set up Postgres, Docker, and Go API for our project. 
+
+\subsection*{Jack Lyons}
+Jack is tasked with backend development and API integration, focusing on the underlying logic and user features of the application. For this checkpoint, Jack primarily worked on expanding and formatting the report for this checkpoint to reflect the new changes to project goals, work allocation, and milestones. He is currently developing the questionnaire to collect initial user data and create entries in our user database.
+
+\subsection*{Gary Young}
+Gary is tasked with recommendation logic and model improvement, focusing on designing and improving our core recommendation model. Thus, his plan is to consider parameters on recommendations for others. He also plans on supporting the team if there are problems. To simulate real user behavior, he plans to create dozens of virtual users with different locations and movie-watching activity within a limited area. The goal is to provide a sense of a more realistic user experience.
+
+\subsection*{Yordanos Tessema}
+Yordanos' responsibility is to implement the frontend pages and integration, which entails a great deal of UX/UI work related to our application and our data. She works on the full visual stack of CineMatch, including the implementation of our React/TS frontend, such as our mood selector, our conversational search input, our movie pages, and our explicit feedback features.
+
+Regarding data visualization, she integrates ECharts to render our analytics dashboards based on pre-computed PostgreSQL views, such as our genre trends, rating distributions, and our city-level activity map. She also works on ensuring our frontend remains responsive, as well as coordinating integration testing with our backend team.
+
+\subsection*{Abdulrahman Alamoudi}
+Abdulrahman is responsible for designing the graph relationships, weights, and queries. His work focuses on implementing a graph structure to map movie interests and support our recommendation algorithm. He will prepare the data as a graph and build queries based on users’ watched movies to find similar movies, as well as identify what other people in the same area are watching using PostGIS and graph technology. 
+
 
 \subsection*{Database Schema Overview}
 
@@ -145,22 +180,26 @@ The schema splits into two groups. On the movie side, \texttt{movies} holds core
 \toprule
 \textbf{Task} & \textbf{Member} \\
 \midrule
-Go API server, routing, and JWT auth & Abdulrahman Alamoudi \\
-Activity simulation and materialized views for city map & Abdulrahman Alamoudi \\
-PostgreSQL schema, migrations, and query optimization & Gary Young \\
-Data ingestion pipeline and corpus preparation & Gary Young \\
-LLM adapter: trigger enrichment, Text-to-SQL, explanations & Jack Lyons \\
-XGBoost feature engineering, training, and scoring service & Jack Lyons \\
-RAG system, feedback loop, and model retraining & Jack Lyons \\
-React frontend, ECharts dashboards, and city activity map & Yazeed Alharthi \\
-User onboarding flow across frontend and backend & Yazeed Alharthi \\
-Apache AGE graph setup and related-movies traversal & Yordanos Tessema \\
-Integration, testing, and documentation & All members \\
+PostgreSQL schema design, migrations, and query optimization & Yazeed Alharthi \\
+Data preparation and corpus ingestion pipeline & Yazeed Alharthi \\
+LLM--database integration and query interaction & Yazeed Alharthi \\
+Backend development and API integration & Jack Lyons \\
+User questionnaire flow and backend data insertion & Jack Lyons \\
+Recommendation logic and model improvement & Gary Young \\
+Virtual user simulation for location-based movie activity & Gary Young \\
+React/TypeScript frontend pages and UI integration & Yordanos Tessema \\
+ECharts dashboards and city-level activity map integration & Yordanos Tessema \\
+Responsive frontend design and UX/UI implementation & Yordanos Tessema \\
+Apache AGE graph relationships, weights, and traversal queries & Abdulrahman Alamoudi \\
+Spatial recommendation logic and local activity analysis using PostGIS & Abdulrahman Alamoudi \\
+Integration, testing, final report, and presentation & All members \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \vspace{4pt}
+
+\appendix
 
 \begin{thebibliography}{00}
 \bibitem{letterboxd} Letterboxd. \url{https://letterboxd.com/}
